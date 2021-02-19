@@ -1,81 +1,107 @@
-#include <iostream>
+#include<iostream>
 #include<fstream>
 #include<vector>
 #include<string>
-#include<cctype>
+#include<cstdlib>
+#include<cstring>
 using namespace std;
 
+char score2grade(int score){
+    if(score >= 80) return 'A';
+    if(score >= 70) return 'B';
+    if(score >= 60) return 'C';
+    if(score >= 50) return 'D';
+    else return 'F';
+}
+
+string toUpperStr(string x){
+    string y = x;
+    for(unsigned i = 0; i < x.size();i++) y[i] = toupper(x[i]);
+    return y;
+}
+
+void importDataFromFile(string &filemane , vector<string> &names ,vector<int> &scores , vector<char> &grades){
+    ifstream name;
+    name.open("name_score.txt");
+    string textline ;
+    char name2[100];
+    char format[]= "%[^:]:%i %i %i";
+
+    while (getline(name,textline)){
+        int a = 0 , b = 0 , c = 0;
+        char text[100];
+        strcpy(text,textline.c_str());
+        sscanf(text,format,name2,&a,&b,&c);
+        names.push_back(name2);
+        int grade = a+b+c;
+        scores.push_back(grade);
+        grades.push_back(score2grade(grade));
+    }
+    name.close();
+}
+
+void getCommand(string &command , string &key){
+    string text;
+    cout<<"Please input your command: ";
+    getline(cin,text);
+    int lok = text.find_first_of(" ");
+    command = text.substr(0,lok);
+    key = text.substr(lok+1);
+
+}
+
+void searchName(vector<string> &names , vector<int> &scores, vector<char> &grades , string key){
+    int n = names.size();
+    int bo = 0;
+    cout <<"---------------------------------\n";
+    for (int i = 0; i < n; i++)
+    {
+        if(toUpperStr(names[i])==key){
+            cout<< names[i] <<"'s score = " << scores[i] <<endl;
+            cout<< names[i] <<"'s grade = " << grades[i] <<endl;
+            bo=1;
+        }
+    }
+    if (bo!=1) cout<<"Cannot found.\n";
+    cout <<"---------------------------------\n";
+}
+
+void searchGrade(vector<string> &names , vector<int> &scores , vector<char> &grades, string key ){
+    cout <<"---------------------------------\n";
+    int n = names.size();
+    char key1[100];
+    int bo = 0;
+    strcpy(key1,key.c_str());
+    for (int i = 0; i < n; i++){
+        if (grades[i]==*key1){
+           cout << names[i] <<" "<<"("<<scores[i]<<")"<<endl;
+        bo = 1;
+        }
+    }
+    if (bo!=1) cout<<"Cannot found.\n";
+    cout <<"---------------------------------\n";
+}
 int main(){
-    vector<string> name;
-    vector<int> score;
-    vector<char> grade;
-    int score1;
-    int score2;
-    int score3;
-    string line;
-    char name1[100];
-    string command;
-    string comname;
-    string strname;
-    vector<string> uppername;
-    char comgrade;
-    char format[] = "%[^:] %[^ ] %d %d %d";
-    int j = 0;
-    int sum;
-    ifstream file("name_score.txt");
-    char temp[100];
-
-    while(getline(file,line)){
-        sscanf(line.c_str(),format,name1,temp,&score1,&score2,&score3);
-        strname = name1;
-        while(strname[j]){
-            strname[j] = toupper(strname[j]);
-            j++;
+    string filename = "name_score.txt";
+    vector<string> names;
+    vector<int> scores;
+    vector<char> grades; 
+    importDataFromFile(filename, names, scores, grades);
+    
+    do{
+        string command, key;
+        getCommand(command,key);
+        command = toUpperStr(command);
+        key = toUpperStr(key);
+        if(command == "EXIT") break;
+        else if(command == "GRADE") searchGrade(names, scores, grades, key);
+        else if(command == "NAME") searchName(names, scores, grades, key);
+        else{
+            cout << "---------------------------------\n";
+            cout << "Invalid command.\n";
+            cout << "---------------------------------\n";
         }
-        j = 0;
-        uppername.push_back(strname);
-        name.push_back(name1);
-        sum = score1+score2+score3;
-        score.push_back(sum);
-        if(score.back() >= 80)grade.push_back('A');
-        else if(score.back() >= 70)grade.push_back('B');
-        else if(score.back() >= 60)grade.push_back('C');
-        else if(score.back() >= 50)grade.push_back('D');
-        else grade.push_back('F');
-    }
-
-    while(command != "exit"){
-        j=0;
-        cout << "Please input your command : ";
-        cin >> command;
-        if(command == "name"){
-            cin >> comname;
-            while(comname[j]){
-                comname[j] = toupper(comname[j]);
-                j++;
-            }
-            for(int i = 0;i < name.size();i++){
-                if(uppername[i] == comname){
-                    cout << "------------------------------------\n";
-                    cout << name[i] << "'s grade = " << grade[i] << '\n';
-                    cout << "------------------------------------\n";
-                    break;
-                }
-                if(i == name.size() - 1)cout << "Cannot found.\n";
-            }
-        }
-
-        else if(command == "grade"){
-            cin >> comgrade;
-            comgrade = toupper(comgrade);
-            cout << "------------------------------------\n";
-            for(int i = 0;i < name.size();i++){
-                if(comgrade == grade[i])cout << name[i] << '\n';
-            }
-            cout << "------------------------------------\n";
-        }
-        else if(command != "exit")cout << "Invalid command\n";
-    }
-
+    }while(true);
+    
     return 0;
 }
